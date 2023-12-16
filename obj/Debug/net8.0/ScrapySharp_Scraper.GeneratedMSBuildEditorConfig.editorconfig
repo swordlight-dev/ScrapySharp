@@ -8,6 +8,6 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = ScrapySharp_Scraper
-build_property.ProjectDir = E:\Malta\ScrapySharp_Scraper\
+build_property.ProjectDir = E:\Malta\ScrapySharp\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 

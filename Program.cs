@@ -7,6 +7,11 @@ using System.IO;
 using System.Globalization;
 using CsvHelper;
 using Flurl.Http;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+
+using MySql.EntityFrameworkCore;
+
 
 
 namespace ScrapySharp_scraper
@@ -18,51 +23,68 @@ namespace ScrapySharp_scraper
 
         static void Main(string[] args)
         {
-            var eventLinks = GetEventLinks("https://ra.co/", "https://ra.co/events/us/losangeles?page=2");
-            var lstEventDetails = GetEventDetails(eventLinks);
-            exportEventsToCsv(lstEventDetails);
+            var lstEventDetails = GetEventLinks("https://ra.co/", "https://ra.co/events/mt/all?");
+            // var lstEventDetails = GetEventDetails(eventLinks);
+            // exportEventsToCsv(lstEventDetails);
+            ExportEventsToDb(lstEventDetails);
         }
 
-        static List<string> GetEventLinks(string baseUrl, string url)
+        static List<EventDetails> GetEventLinks(string baseUrl, string url)
         {
             var mainPageEventLinks = new List<string>();
-            var htmlNode = GetHtml(url);
-            var spansWithLinks = htmlNode.SelectNodes("//span[@href and @data-pw-test-id and @data-test-id]");
-
-            if (spansWithLinks != null)
-            {
-                foreach (var span in spansWithLinks)
-                {
-                    var hrefAttribute = span.Attributes["href"];
-                    if (hrefAttribute != null)
-                    {
-                        var absoluteUrl = new Uri(new Uri(baseUrl), hrefAttribute.Value).ToString();
-                        mainPageEventLinks.Add(absoluteUrl);
-                    }
-                }
-            }
-            return mainPageEventLinks;
-        }
-
-        static List<EventDetails> GetEventDetails(List<string> urls)
-        {
             var lstEventDetails = new List<EventDetails>();
+            var htmlNode = GetHtml(url);
+            // var spansWithLinks = htmlNode.SelectNodes("//span[@href and @data-pw-test-id and @data-test-id]");
+            var boxElements = htmlNode.SelectNodes("//div[@data-pw-test-id='event-listing-item-nonticketed' and contains(@class, 'Box-omzyfs-0')]");
 
-            foreach (var url in urls)
+            if (boxElements != null)
             {
-                var htmlNode = GetHtml(url);
-                var eventDetails = new EventDetails();
-                eventDetails.EventTitle = htmlNode.OwnerDocument.DocumentNode.SelectSingleNode("//html/head/title").InnerText;
-                var description = htmlNode.OwnerDocument.DocumentNode.SelectSingleNode("//html/body/div/div[2]/section[1]/div/section[3]/section/div/div/div[2]/ul/li/div/span").InnerText;
-                eventDetails.EventDescription = description.Replace("\n        \n            QR Code Link to This Post\n            \n        \n", "");
-                eventDetails.EventUrl = url;
-                if (eventDetails.EventTitle != null || eventDetails.EventDescription != null)
+                foreach (var box in boxElements)
                 {
+                    var eventDetails = new EventDetails();
+
+                    var anchorTag = box.SelectSingleNode(".//a[@data-pw-test-id='event-image-link']");
+                    var titleTag = box.SelectSingleNode(".//h3[@data-pw-test-id='event-title']");
+                    var nameElement = box.SelectSingleNode(".//span[@color='primary' and @font-weight='normal' and @class='Text-sc-1t0gn2o-0 bYvpkM']");
+                    var venueSpan = box.SelectSingleNode(".//span[@data-pw-test-id='event-venue-link' and @color='primary' and @font-weight='normal']");
+                    var dateSpan = box.SelectSingleNode(".//span[@color='secondary' and @font-weight='normal' and contains(@class, 'Text-sc-1t0gn2o-0') and contains(@class, 'jmZufm')]");
+
+                    eventDetails.EventUrl = anchorTag?.Attributes["href"]?.Value;
+                    eventDetails.EventTitle = titleTag?.InnerText ?? "";
+                    eventDetails.EventName = nameElement?.InnerText ?? "";
+                    eventDetails.EventLocation = venueSpan?.InnerText ?? "";
+                    eventDetails.EventDate = dateSpan?.InnerText ?? "";
+                    if (eventDetails.EventUrl != null)
+                    {
+                        var absoluteUrl = new Uri(new Uri(baseUrl), eventDetails.EventUrl).ToString();
+                        eventDetails.EventUrl = absoluteUrl;
+                    }
+
                     lstEventDetails.Add(eventDetails);
                 }
             }
             return lstEventDetails;
         }
+
+        // static List<EventDetails> GetEventDetails(List<string> urls)
+        // {
+        //     var lstEventDetails = new List<EventDetails>();
+
+        //     foreach (var url in urls)
+        //     {
+        //         var htmlNode = GetHtml(url);
+        //         var eventDetails = new EventDetails();
+        //         eventDetails.EventTitle = htmlNode.OwnerDocument.DocumentNode.SelectSingleNode("//html/head/title").InnerText;
+        //         var description = htmlNode.OwnerDocument.DocumentNode.SelectSingleNode("//html/body/div/div[2]/section[1]/div/section[3]/section/div/div/div[2]/ul/li/div/span").InnerText;
+        //         eventDetails.EventDescription = description.Replace("\n        \n            QR Code Link to This Post\n            \n        \n", "");
+        //         eventDetails.EventUrl = url;
+        //         if (eventDetails.EventTitle != null || eventDetails.EventDescription != null)
+        //         {
+        //             lstEventDetails.Add(eventDetails);
+        //         }
+        //     }
+        //     return lstEventDetails;
+        // }
 
         static HtmlNode GetHtml(string url)
         {
@@ -108,7 +130,7 @@ namespace ScrapySharp_scraper
         }
         static void exportEventsToCsv(List<EventDetails> lstEventDetails)
         {
-            string directoryPath = "/Users/guest/Desktop/ScrapySharp_scraper/CSVs/";
+            string directoryPath = "/ScrapySharp_scraper/CSVs/";
             Directory.CreateDirectory(directoryPath);
             using (var writer = new StreamWriter($"{directoryPath}_{DateTime.Now.ToFileTime()}.csv"))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
@@ -136,12 +158,40 @@ namespace ScrapySharp_scraper
             return result.ToObject<List<string>>();
         }
 
+        static void ExportEventsToDb(List<EventDetails> lstEventDetails)
+        {
+            using (var dbContext = new EventDbContext())
+            {
+                dbContext.Database.EnsureCreated();
+
+                foreach (var eventDetails in lstEventDetails)
+                {
+                    dbContext.Events.Add(eventDetails);
+                }
+
+                dbContext.SaveChanges();
+            }
+        }
+
     }
 
     public class EventDetails
     {
+        [Key]
+        public int EventId { get; set; }
         public string EventTitle { get; set; }
-        public string EventDescription { get; set; }
+        public string EventName { get; set; }
+        public string EventLocation { get; set; }
+        public string EventDate { get; set; }
         public string EventUrl { get; set; }
+    }
+    public class EventDbContext : DbContext
+    {
+        public DbSet<EventDetails> Events { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+           optionsBuilder.UseMySQL("Server=127.0.0.1;Database=scrapy;User=root;Password=;");
+        }
     }
 }

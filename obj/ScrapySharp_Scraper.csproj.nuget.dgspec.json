@@ -1,25 +1,27 @@
 {
   "format": 1,
   "restore": {
-    "E:\\Malta\\ScrapySharp_Scraper\\ScrapySharp_Scraper.csproj": {}
+    "E:\\Malta\\ScrapySharp\\ScrapySharp_Scraper.csproj": {}
   },
   "projects": {
-    "E:\\Malta\\ScrapySharp_Scraper\\ScrapySharp_Scraper.csproj": {
+    "E:\\Malta\\ScrapySharp\\ScrapySharp_Scraper.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Malta\\ScrapySharp_Scraper\\ScrapySharp_Scraper.csproj",
+        "projectUniqueName": "E:\\Malta\\ScrapySharp\\ScrapySharp_Scraper.csproj",
         "projectName": "ScrapySharp_Scraper",
-        "projectPath": "E:\\Malta\\ScrapySharp_Scraper\\ScrapySharp_Scraper.csproj",
+        "projectPath": "E:\\Malta\\ScrapySharp\\ScrapySharp_Scraper.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "E:\\Malta\\ScrapySharp_Scraper\\obj\\",
+        "outputPath": "E:\\Malta\\ScrapySharp\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -45,6 +47,28 @@
             "Flurl.Http": {
               "target": "Package",
               "version": "[3.2.4, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "MySql.Data": {
+              "target": "Package",
+              "version": "[8.2.0, )"
+            },
+            "MySql.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[7.0.10, )"
+            },
+            "Pomelo.EntityFrameworkCore.MySql": {
+              "target": "Package",
+              "version": "[7.0.0, )"
             },
             "ScrapySharp": {
               "target": "Package",
